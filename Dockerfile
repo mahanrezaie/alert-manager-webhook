@@ -1,4 +1,3 @@
-FROM python3.13-slim
 
 
 WORKDIR /app
