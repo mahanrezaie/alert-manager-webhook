@@ -16,6 +16,9 @@ bot = telebot.TeleBot(BOT_TOKEN)
 # Prometheus metrics
 REQUEST_COUNT = Counter("webhook_requests_total", "Total number of requests to the webhook", ["method", "endpoint", "http_status"])
 REQUEST_LATENCY = Histogram("webhook_request_latency_seconds", "Latency of webhook requests", ["endpoint"])
+ALERTS_TOTAL = Counter("alerts_total", "Total number of alerts received")
+ALERTS_CRITICAL_TOTAL = Counter("alerts_critical_total", "Total number of critical alerts received")
+ALERTS_WARNING_TOTAL = Counter("alerts_warning_total", "Total number of warning alerts received")
 
 def send_message(chat_id, data):
     bot.send_message(chat_id, data)
@@ -48,6 +51,15 @@ def webhook():
         severity = labels.get("severity")
         summary = annotations.get("summary")
         description = annotations.get("description")
+        
+        # Increment total alerts counter
+        ALERTS_TOTAL.inc()
+
+        # Increment severity-specific counters
+        if severity == "critical":
+            ALERTS_CRITICAL_TOTAL.inc()
+        elif severity == "warning":
+            ALERTS_WARNING_TOTAL.inc()
         
         # Check if required fields are present
         if team and severity:
